@@ -5,6 +5,7 @@
  */
 
 #include <Wire.h>
+#include "SevSeg.h"
 
 #define PIN_EM 2
 #define PIN_STATUS_LED 13
@@ -29,6 +30,10 @@
 #define PROX_CENTER 20000
 
 #define PULSE_MAX_MS 1000
+// If it takes period T between when one ball and the next goes by, the
+// electromagnet should be off for T/AFTER_FRACTION, and then on until the
+// next ball arrives. (Ideally this is 1/2 the time.)
+#define AFTER_FRACTION 3
 
 #define NUM_ARMS 3
 
@@ -41,8 +46,12 @@ enum state_t {
 enum state_t currentState;
 
 unsigned long lastPassMs;
+float rpm;
+char rpmDisplayBuffer[6];
 unsigned long lastIntervalMs;
 unsigned long pulseOnMs;
+
+SevSeg display;
 
 void setup() {
   Serial.begin(57600);
@@ -52,15 +61,15 @@ void setup() {
   pinMode(PIN_STATUS_LED, OUTPUT);
   digitalWrite(PIN_STATUS_LED, LOW);
 
-  for (int i = 0; i < 4; i++) {
-    digitalWrite(PIN_STATUS_LED, HIGH);
-    delay(100);
-    digitalWrite(PIN_STATUS_LED, LOW);
-  }
-
   setupIr();
 
+  byte digits[] = {A0, A1, A2, A3};
+  byte segments[] = {3, 4, 5, 6, 7, 8, 9, 10};
+  display.begin(COMMON_ANODE, /* number of digits */ 4, digits, segments);
+  display.setBrightness(100);
+
   lastPassMs = millis();
+  rpm = 0.0f;
   lastIntervalMs = 1;
   currentState = AFTER_PASS;
 }
@@ -70,7 +79,7 @@ void loop() {
   unsigned int prox = readProximity();
   switch(currentState) {
     case AFTER_PASS:
-      if (t - lastPassMs > lastIntervalMs / 2) {
+      if (t - lastPassMs > lastIntervalMs / AFTER_FRACTION) {
         currentState = PULSE;
         logTimeAndProx(t, prox);
         Serial.println("after => pulse");
@@ -108,15 +117,18 @@ void loop() {
         currentState = AFTER_PASS;
         lastIntervalMs = (t - lastPassMs);
         lastPassMs = t;
+        rpm = (60.0 * 1000) / (lastIntervalMs * NUM_ARMS);
+        display.setNumber(rpm, 1);
         logTimeAndProx(t, prox);
         Serial.print("center => after, dt=");
         Serial.print(lastIntervalMs);
         Serial.print("ms / ");
-        Serial.print((60.0 * 1000) / (lastIntervalMs * NUM_ARMS));
+        Serial.print(rpm);
         Serial.print("rpm\n\n");
       }
       break;
   }
+  display.refreshDisplay();
 }
 
 void logTimeAndProx(unsigned long t, int prox) {
