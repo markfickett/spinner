@@ -1,0 +1,33 @@
+= Automatic Fidget Spinner
+
+Pulse an electromagnet to automatically turn a fidget spinner; and display RPM on a 7-segment LED display.
+
+== Parts List
+
+* Bare ATMega328p, https://www.sparkfun.com/products/9061[$5 from Sparkfun] (and https://www.sparkfun.com/products/11801[Tiny AVR Programmer, $20])
+* 28-pin DIP socket for ATMega328p, https://www.sparkfun.com/products/7942[$1]
+* 7-segment 4-character LED with decimal points, common anode https://www.sparkfun.com/products/9483[$2 from SparkFun] though a https://www.adafruit.com/product/879[version with an I2C interface] may be worth the $10 for easy wiring
+* Electromagnet (hand-wound magnet wire on iron rod, 5 ohms)
+* https://www.sparkfun.com/products/10213[MOSFET ($1)] to drive coil
+* Flyback https://www.sparkfun.com/products/10926[Schottky diode (15 cents)] for coil; a 1N4001 seems to work fine too
+* IR rangefinder (https://www.sparkfun.com/products/retired/10901[VCNL4000])
+* https://www.sparkfun.com/products/526[3.3v regulator, $2] for IR rangefinder (note the linked regulator has unusual pinouts)
+* 5x 1/8W 1K ohm resistors (current limiting for LED segments and MOSFET base; exact value is not critical)
+* 5v 3A switching power supply (110-220VAC input), about $10, and lamp cord to connect to mains power
+* https://www.sparkfun.com/products/9609[SPDT slide power switch, $1]
+
+The spinner draws 1.5A max, and about 200mA when the coil is off.
+
+== Circuit Diagram
+
+TODO
+
+== Bare ATMega Programming
+
+Burning a bootloader and uploading sketches to a bare ATMega328p using the Tiny AVR programmer follows https://learn.sparkfun.com/tutorials/tiny-avr-programmer-hookup-guide/?&_ga=1.116370310.1288902388.1487472843#board-overview[SparkFun's] and https://www.arduino.cc/en/Tutorial/ArduinoToBreadboard[Arduino's] documentation. Additional notes:
+
+* Connect the Tiny AVR programmer to the DIP on a breadboard https://www.flickr.com/photos/markfickett/22190971401[as pictured].
+** An external crystal is required if fuses are not already set for an internal clock.
+** An external pullup resistor seems not to be required (at least for uploading sketches).
+* Upload sketches using *Sketch > Upload using Programmer*. *The normal upload button will not work.*
+* https://www.arduino.cc/en/Hacking/PinMapping168[ATMega168/328 Arduino Pins]

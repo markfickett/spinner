@@ -1,7 +1,5 @@
 /**
- * Use an electromagnet to accelerate a fidget spinner.
- *
- * IR proximity sensor VCNL4000 from sparkfun.com/products/retired/10901 .
+ * Use an electromagnet to accelerate a fidget spinner, see README for overview.
  */
 
 #include <Wire.h>
@@ -33,8 +31,9 @@
 // If it takes period T between when one ball and the next goes by, the
 // electromagnet should be off for T/AFTER_FRACTION, and then on until the
 // next ball arrives. (Ideally this is 1/2 the time.)
-#define AFTER_FRACTION 3
+#define AFTER_FRACTION 2
 
+// Number of arms on the spinner, for RPM calculation.
 #define NUM_ARMS 3
 
 enum state_t {
@@ -63,8 +62,8 @@ void setup() {
 
   setupIr();
 
-  byte digits[] = {A0, A1, A2, A3};
-  byte segments[] = {3, 4, 5, 6, 7, 8, 9, 10};
+  byte digits[] = {A3, A2, A1, A0}; // Digit D1, D2, D3, D4
+  byte segments[] = {5, 3, 6, 10, 9, 7, 4, 8}; // Segments A-G, dot
   display.begin(COMMON_ANODE, /* number of digits */ 4, digits, segments);
   display.setBrightness(100);
 
