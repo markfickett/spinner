@@ -1,5 +1,5 @@
 /**
- * Use an electromagnet to accelerate a fidget spinner, see README for overview.
+ * Use an electromagnet (EM) to turn a fidget spinner, see README for overview.
  */
 
 #include <Wire.h>
@@ -8,6 +8,7 @@
 #define PIN_ELECTROMAGNET 2
 #define PIN_STATUS_LED 13
 
+// infra-red rangefinder on I2C
 #define VCNL4000_ADDRESS 0x13  // 0x26 write, 0x27 read
 
 // VCNL4000 Register Map
@@ -22,24 +23,36 @@
 #define PROXIMITY_FREQ 0x89  // Proximity IR test signal freq, 0-3
 #define PROXIMITY_MOD 0x8A  // proximity modulator timing
 
-// Higher numbers = increased proximity.
+// Proximity thresholds for detecting when the spinner is passing over the IR
+// rangefinder. Higher numbers = increased proximity = decreased distance.
 #define PROX_FAR 3000
 #define PROX_EDGE 18000
 #define PROX_CENTER 20000
 
+// Never keep the EM on longer than PULSE_MAX_MS (for example if the spinner
+// is stuck or removed), to avoid heating up.
 #define PULSE_MAX_MS 1000
 // If it takes period T between when one ball and the next goes by, the
-// electromagnet should be off for T/AFTER_FRACTION, and then on until the
-// next ball arrives. (Ideally this is 1/2 the time.)
+// EM should be off for T/AFTER_FRACTION, and then on until the next ball
+// arrives. (Ideally this is 1/2 the time for maximum acceleration.)
 #define AFTER_FRACTION 2
 
 // Number of arms on the spinner, for RPM calculation.
 #define NUM_ARMS 3
 
+// Overall program state transitions.
 enum state_t {
+  // After an arm of the spinner passes by, the electromagnet will be off.
   AFTER_PASS,
+
+  // When we think the spinner is approaching, turn the EM on for a pulse.
   PULSE,
+
+  // When the spinner arrives (leading edge), turn off the EM.
   PASS_ARRIVING,
+
+  // When we see the spinner center, calculate timing (for RPM and the next
+  // pulse).
   PASS_CENTER
 };
 enum state_t currentState;
