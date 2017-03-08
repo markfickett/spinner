@@ -2,7 +2,7 @@
 
 Pulse an electromagnet to automatically turn a fidget spinner; and display RPM on a 7-segment LED display.
 
-image::img/2017mar7spinner640short.gif
+image:img/2017mar7spinner640short.gif
 
 == Parts List
 
@@ -22,7 +22,7 @@ The spinner draws 1.5A max, and about 200mA when the coil is off.
 
 == Circuit Diagram
 
-image::img/2017mar07spinnercircuitdiagram.jpg
+image:img/2017mar07spinnercircuitdiagram.jpg
 
 == Bare ATMega Programming
 
