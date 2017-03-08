@@ -5,7 +5,7 @@
 #include <Wire.h>
 #include "SevSeg.h"
 
-#define PIN_EM 2
+#define PIN_ELECTROMAGNET 2
 #define PIN_STATUS_LED 13
 
 #define VCNL4000_ADDRESS 0x13  // 0x26 write, 0x27 read
@@ -55,8 +55,8 @@ SevSeg display;
 void setup() {
   Serial.begin(57600);
 
-  pinMode(PIN_EM, OUTPUT);
-  digitalWrite(PIN_EM, LOW);
+  pinMode(PIN_ELECTROMAGNET, OUTPUT);
+  digitalWrite(PIN_ELECTROMAGNET, LOW);
   pinMode(PIN_STATUS_LED, OUTPUT);
   digitalWrite(PIN_STATUS_LED, LOW);
 
@@ -82,7 +82,7 @@ void loop() {
         currentState = PULSE;
         logTimeAndProx(t, prox);
         Serial.println("after => pulse");
-        digitalWrite(PIN_EM, HIGH);
+        digitalWrite(PIN_ELECTROMAGNET, HIGH);
         digitalWrite(PIN_STATUS_LED, HIGH);
         pulseOnMs = t;
       } else if (prox >= PROX_EDGE) {
@@ -100,7 +100,7 @@ void loop() {
           Serial.println("pulse => arriving");
         }
         currentState = PASS_ARRIVING;
-        digitalWrite(PIN_EM, LOW);
+        digitalWrite(PIN_ELECTROMAGNET, LOW);
         digitalWrite(PIN_STATUS_LED, LOW);
       }
       break;
