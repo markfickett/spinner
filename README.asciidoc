@@ -27,7 +27,7 @@ TODO
 Burning a bootloader and uploading sketches to a bare ATMega328p using the Tiny AVR programmer follows https://learn.sparkfun.com/tutorials/tiny-avr-programmer-hookup-guide/?&_ga=1.116370310.1288902388.1487472843#board-overview[SparkFun's] and https://www.arduino.cc/en/Tutorial/ArduinoToBreadboard[Arduino's] documentation. Additional notes:
 
 * Connect the Tiny AVR programmer to the DIP on a breadboard https://www.flickr.com/photos/markfickett/22190971401[as pictured].
-** An external crystal is required if fuses are not already set for an internal clock.
-** An external pullup resistor seems not to be required (at least for uploading sketches).
 * Upload sketches using *Sketch > Upload using Programmer*. *The normal upload button will not work.*
+** An external crystal is required if fuses are not already set for an internal clock.
+** Empirically, it seems the external pullup resistor and the AREF-side ground and AVCC are not required for uploading sketches.
 * https://www.arduino.cc/en/Hacking/PinMapping168[ATMega168/328 Arduino Pins]
