@@ -3,6 +3,7 @@
  */
 
 #include <Wire.h>
+#include <EEPROM.h>
 #include "SevSeg.h"
 
 #define PIN_ELECTROMAGNET 2
@@ -62,8 +63,10 @@ float rpm;
 char rpmDisplayBuffer[6];
 unsigned long lastIntervalMs;
 unsigned long pulseOnMs;
+float targetRpm;
 
 SevSeg display;
+
 
 void setup() {
   Serial.begin(57600);
@@ -80,6 +83,20 @@ void setup() {
   display.begin(COMMON_ANODE, /* number of digits */ 4, digits, segments);
   display.setBrightness(100);
 
+  // Cycle through different RPM targets each time the sketch restarts.
+  byte c = EEPROM.read(0);
+  EEPROM.write(0, c + 1);
+  switch(c % 3) {
+    case 2:
+      targetRpm = 60.0f / NUM_ARMS;
+      break;
+    case 1:
+      targetRpm = 60.0f;
+      break;
+    default:
+      targetRpm = 1e6f;
+  }
+
   lastPassMs = millis();
   rpm = 0.0f;
   lastIntervalMs = 1;
@@ -95,8 +112,10 @@ void loop() {
         currentState = PULSE;
         logTimeAndProx(t, prox);
         Serial.println("after => pulse");
-        digitalWrite(PIN_ELECTROMAGNET, HIGH);
-        digitalWrite(PIN_STATUS_LED, HIGH);
+        if (rpm < targetRpm) {
+          digitalWrite(PIN_ELECTROMAGNET, HIGH);
+          digitalWrite(PIN_STATUS_LED, HIGH);
+        }
         pulseOnMs = t;
       } else if (prox >= PROX_EDGE) {
         currentState = PASS_ARRIVING;
@@ -109,6 +128,7 @@ void loop() {
         logTimeAndProx(t, prox);
         if (prox < PROX_EDGE) {
           Serial.println("pulse => timeout");
+          rpm = 0.0f;
         } else {
           Serial.println("pulse => arriving");
         }
