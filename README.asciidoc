@@ -2,6 +2,8 @@
 
 Pulse an electromagnet to automatically turn a fidget spinner; and display RPM on a 7-segment LED display.
 
+image::2017mar7spinner640short.gif
+
 == Parts List
 
 * Bare ATMega328p, https://www.sparkfun.com/products/9061[$5 from Sparkfun] (and https://www.sparkfun.com/products/11801[Tiny AVR Programmer, $20])
