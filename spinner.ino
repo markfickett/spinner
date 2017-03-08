@@ -33,10 +33,6 @@
 // Never keep the EM on longer than PULSE_MAX_MS (for example if the spinner
 // is stuck or removed), to avoid heating up.
 #define PULSE_MAX_MS 1000
-// If it takes period T between when one ball and the next goes by, the
-// EM should be off for T/AFTER_FRACTION, and then on until the next ball
-// arrives. (Ideally this is 1/2 the time for maximum acceleration.)
-#define AFTER_FRACTION 2
 
 // Number of arms on the spinner, for RPM calculation.
 #define NUM_ARMS 3
@@ -63,7 +59,13 @@ float rpm;
 char rpmDisplayBuffer[6];
 unsigned long lastIntervalMs;
 unsigned long pulseOnMs;
+
 float targetRpm;
+// If it takes period T between when one arm/ball and the next goes by, the
+// EM should be off for T/2 and then off for T/onFraction, then off again.
+// For maximum acceleration, this is 1/2 and 1/2; when targeting a specific RPM
+// the on time may be shorter (onFraction > 2).
+float onFraction;
 
 SevSeg display;
 
@@ -88,7 +90,7 @@ void setup() {
   EEPROM.write(0, c + 1);
   switch(c % 3) {
     case 2:
-      targetRpm = 60.0f / NUM_ARMS;
+      targetRpm = 120.0f;
       break;
     case 1:
       targetRpm = 60.0f;
@@ -96,10 +98,11 @@ void setup() {
     default:
       targetRpm = 1e6f;
   }
+  onFraction = 2.0;
 
   lastPassMs = millis();
   rpm = 0.0f;
-  lastIntervalMs = 1;
+  lastIntervalMs = 1000;
   currentState = AFTER_PASS;
 }
 
@@ -108,14 +111,12 @@ void loop() {
   unsigned int prox = readProximity();
   switch(currentState) {
     case AFTER_PASS:
-      if (t - lastPassMs > lastIntervalMs / AFTER_FRACTION) {
+      if (t - lastPassMs > lastIntervalMs / 2) {
         currentState = PULSE;
         logTimeAndProx(t, prox);
         Serial.println("after => pulse");
-        if (rpm < targetRpm) {
-          digitalWrite(PIN_ELECTROMAGNET, HIGH);
-          digitalWrite(PIN_STATUS_LED, HIGH);
-        }
+        digitalWrite(PIN_ELECTROMAGNET, HIGH);
+        digitalWrite(PIN_STATUS_LED, HIGH);
         pulseOnMs = t;
       } else if (prox >= PROX_EDGE) {
         currentState = PASS_ARRIVING;
@@ -124,7 +125,8 @@ void loop() {
       }
       break;
     case PULSE:
-      if (prox >= PROX_EDGE || t - pulseOnMs > PULSE_MAX_MS) {
+      if (prox >= PROX_EDGE ||
+          t - pulseOnMs > min(lastIntervalMs / onFraction, PULSE_MAX_MS)) {
         logTimeAndProx(t, prox);
         if (prox < PROX_EDGE) {
           Serial.println("pulse => timeout");
@@ -157,6 +159,21 @@ void loop() {
         Serial.print("ms / ");
         Serial.print(rpm);
         Serial.print("rpm\n\n");
+
+        // Adjust how long the EM stays on based on current v. target RPM.
+        // This could be replaced by a PID controller.
+        float rpmFraction = rpm / targetRpm;
+        if (rpmFraction > 1.0) {
+          onFraction = 60.0;
+        } else if (rpmFraction > 0.95) {
+          onFraction = 50.0;
+        } else if (rpmFraction > 0.9) {
+          onFraction = 40.0;
+        } else if (rpmFraction > 0.5) {
+          onFraction = 8.0;
+        } else {
+          onFraction = 2.0; // maximum power
+        }
       }
       break;
   }
