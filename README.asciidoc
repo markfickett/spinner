@@ -14,15 +14,21 @@ image::img/2017mar7spinner640short.gif[Spinner in action]
 * Flyback https://www.sparkfun.com/products/10926[Schottky diode (15 cents)] for coil; a 1N4001 seems to work fine too
 * IR rangefinder (https://www.sparkfun.com/products/retired/10901[VCNL4000])
 * https://www.sparkfun.com/products/526[3.3v regulator, $2] for IR rangefinder (note the linked regulator has unusual pinouts)
-* 5x 1/8W 1K ohm resistors (current limiting for LED segments and MOSFET base; exact value is not critical)
-* 5v 3A switching power supply (110-220VAC input), about $10, and lamp cord to connect to mains power
+* 5x 1/8W 1K ohm resistors (current limiting for transistor and MOSFET bases; exact value is not critical)
+* 4x http://www.mouser.com/ProductDetail/Fairchild-Semiconductor/2N3904_D28Z[transistors] for LED segment anodes
+* 4x 1/4W 220 ohm resistors for LED segment anodes
+* 5v 3A switching power supply (110-220VAC input), about $10, and lamp cord to connect to mains power. My PSU, billed as an LED power supply, had http://forums.hackaday.com/viewtopic.php?f=4&t=4242[coil whine] (http://www.corsair.com/en-us/blog/2013/september/coil-whine[more from Corsair]), and coating one of its inductors with clear nail polish helped slightly. I also tried using http://www.playtool.com/pages/psunonpc/nonpc.html[repurposing a computer PSU], which had sufficient current on one unit but reset occasionally with another.
 * https://www.sparkfun.com/products/9609[SPDT slide power switch, $1]
 
-The spinner draws 1.5A max, and about 200mA when the coil is off.
+The spinner draws 1.5A max, and about 200mA when the coil is off. The LED segment anodes can be powered directly from 1K ohm resistors from the ATMega, but that renders them somewhat dim. Using a transistor to provide 5v to the (common) anode pin keeps the per-pin current low while providing more power to the LED segments.
+
+You can add a https://electronics.stackexchange.com/questions/167484/electrolytic-capacitor-in-solenoid-circuit[bypass or filter capacitor] by the coil, microcontroller, and/or power supply; I found it didn't make a difference with my PSU.
 
 == Circuit Diagram
 
 image::img/2017mar07spinnercircuitdiagram.jpg[Circuit Diagram]
+
+(The diagram above does not show transistors for the LED segment anodes.)
 
 == Bare ATMega Programming
 
@@ -33,3 +39,7 @@ Burning a bootloader and uploading sketches to a bare ATMega328p using the Tiny 
 ** An external crystal is required if fuses are not already set for an internal clock.
 ** Empirically, it seems the external pullup resistor and the AREF-side ground and AVCC are not required for uploading sketches.
 * https://www.arduino.cc/en/Hacking/PinMapping168[ATMega168/328 Arduino Pins]
+
+== Spinner
+
+This spins a 3D-printed spinner designed and printed by http://www.jessejohnson.me/[Jesse Johnson]; https://cad.onshape.com/documents/58f77783a610c60f7a6aacc2/w/04a47687188cd1653c2cc1a8/e/e24566ecf050aec19288347b[see it in OnShape] (login required). It uses a 22m bearing and 3/4" balls.
